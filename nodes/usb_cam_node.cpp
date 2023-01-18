@@ -60,6 +60,8 @@ public:
   int image_width_, image_height_, framerate_, exposure_, brightness_, contrast_, saturation_, sharpness_, focus_,
       white_balance_, gain_;
   bool autofocus_, autoexposure_, auto_white_balance_;
+  // e-con camera specific
+  int exposure_auto_, exposure_time_absolute_, roi_window_size_, roi_exposure_, frame_sync_, denoise_, exposure_compensation_;
   boost::shared_ptr<camera_info_manager::CameraInfoManager> cinfo_;
 
   UsbCam cam_;
@@ -113,6 +115,15 @@ public:
     // enable/disable auto white balance temperature
     node_.param("auto_white_balance", auto_white_balance_, true);
     node_.param("white_balance", white_balance_, 4000);
+
+    // e-con camera specific
+    node_.param("econ_exposure_auto", exposure_auto_, 0); // 0-2, default=0
+    node_.param("econ_exposure_time_absolute", exposure_time_absolute_, 312); // 1-10000, default=312
+    node_.param("econ_roi_window_size", roi_window_size_, 8); // 8-64, step=8, default=8
+    node_.param("econ_roi_exposure", roi_exposure_, 32896); // 0-65535, default=32896
+    node_.param("econ_frame_sync", frame_sync_, 0); // 0-2, default=0
+    node_.param("econ_denoise", denoise_, 8); // 0-15, default=8
+    node_.param("econ_exposure_compensation", exposure_compensation_, 16000); // 8000-1000000, default=16000
 
     // load the camera info
     node_.param("camera_frame_id", img_.header.frame_id, std::string("head_camera"));
@@ -229,6 +240,36 @@ public:
       {
         cam_.set_v4l_parameter("focus_absolute", focus_);
       }
+    }
+
+    // e-con camera specific
+    if (node_.hasParam("econ_exposure_auto"))
+    {
+      cam_.set_v4l_parameter("exposure_auto", exposure_auto_);
+    }
+    if (node_.hasParam("econ_exposure_time_absolute"))
+    {
+      cam_.set_v4l_parameter("exposure_time_absolute", exposure_time_absolute_);
+    }
+    if (node_.hasParam("econ_roi_window_size"))
+    {
+      cam_.set_v4l_parameter("roi_window_size", roi_window_size_);
+    }
+    if (node_.hasParam("econ_roi_exposure"))
+    {
+      cam_.set_v4l_parameter("roi_exposure", roi_exposure_);
+    }
+    if (node_.hasParam("econ_frame_sync"))
+    {
+      cam_.set_v4l_parameter("frame_sync", frame_sync_);
+    }
+    if (node_.hasParam("econ_denoise"))
+    {
+      cam_.set_v4l_parameter("denoise", denoise_);
+    }
+    if (node_.hasParam("econ_exposure_compensation"))
+    {
+      cam_.set_v4l_parameter("exposure_compensation", exposure_compensation_);
     }
   }
 

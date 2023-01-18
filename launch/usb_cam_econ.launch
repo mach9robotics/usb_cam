@@ -8,6 +8,14 @@
     <arg name="camera_frame_id" default="camera" />
     <arg name="io_method" default="userptr" />
 
+    <arg name="econ_exposure_auto" default="0" />
+    <arg name="econ_exposure_time_absolute" default="312" />
+    <arg name="econ_roi_window_size" default="8" />
+    <arg name="econ_roi_exposure" default="32896" />
+    <arg name="econ_frame_sync" default="0" />
+    <arg name="econ_denoise" default="8" />
+    <arg name="econ_exposure_compensation" default="16000" />
+
     <arg name="node_name" default="usb_cam" />
     <arg name="rviz" default="false" />
 
@@ -20,6 +28,14 @@
         <param name="color_format" value="$(arg color_format)" />
         <param name="camera_frame_id" value="$(arg camera_frame_id)" />
         <param name="io_method" value="$(arg io_method)"/>
+
+        <param name="econ_exposure_auto" value="$(arg econ_exposure_auto)" />
+        <param name="econ_exposure_time_absolute" value="$(arg econ_exposure_time_absolute)" />
+        <param name="econ_roi_window_size" value="$(arg econ_roi_window_size)" />
+        <param name="econ_roi_exposure" value="$(arg econ_roi_exposure)" />
+        <param name="econ_frame_sync" value="$(arg econ_frame_sync)" />
+        <param name="econ_denoise" value="$(arg econ_denoise)" />
+        <param name="econ_exposure_compensation" value="$(arg econ_exposure_compensation)" />
     </node>
 
     <group if="$(arg rviz)">
