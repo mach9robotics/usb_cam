@@ -60,6 +60,14 @@
 
 namespace usb_cam {
 
+class DeviceBusyException : public std::exception {
+public:
+std::string what ()
+{
+  return "Device or resource busy";
+}
+};
+
 static void monotonicToRealTime(const timespec& monotonic_time, timespec& real_time)
 {
   struct timespec real_sample1, real_sample2, monotonic_sample;
@@ -970,6 +978,11 @@ void UsbCam::init_userp(unsigned int buffer_size)
                 "user pointer i/o");
       exit(EXIT_FAILURE);
     }
+    else if (EBUSY == errno)
+    {
+      ROS_WARN("Device or resource busy");
+      throw DeviceBusyException();
+    }
     else
     {
       errno_exit("VIDIOC_REQBUFS");
@@ -1248,8 +1261,19 @@ void UsbCam::start(const std::string& dev, io_method io_method,
     exit(EXIT_FAILURE);
   }
 
+open_dev:
   open_device();
-  init_device(image_width, image_height, framerate);
+  try
+  {
+    init_device(image_width, image_height, framerate);
+  }
+  catch (DeviceBusyException e)
+  {
+    uninit_device();
+    close_device();
+    sleep(1);
+    goto open_dev;
+  }
   start_capturing();
 
   image_ = (camera_image_t *)calloc(1, sizeof(camera_image_t));
