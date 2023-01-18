@@ -56,6 +56,7 @@
 #include <usb_cam/usb_cam.h>
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
+#define NB_BUFFER (3)
 
 namespace usb_cam {
 
@@ -957,7 +958,7 @@ void UsbCam::init_userp(unsigned int buffer_size)
 
   CLEAR(req);
 
-  req.count = 4;
+  req.count = NB_BUFFER;
   req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   req.memory = V4L2_MEMORY_USERPTR;
 
@@ -975,7 +976,7 @@ void UsbCam::init_userp(unsigned int buffer_size)
     }
   }
 
-  buffers_ = (buffer*)calloc(4, sizeof(*buffers_));
+  buffers_ = (buffer*)calloc(NB_BUFFER, sizeof(*buffers_));
 
   if (!buffers_)
   {
@@ -983,7 +984,7 @@ void UsbCam::init_userp(unsigned int buffer_size)
     exit(EXIT_FAILURE);
   }
 
-  for (n_buffers_ = 0; n_buffers_ < 4; ++n_buffers_)
+  for (n_buffers_ = 0; n_buffers_ < NB_BUFFER; ++n_buffers_)
   {
     buffers_[n_buffers_].length = buffer_size;
     buffers_[n_buffers_].start = memalign(/* boundary */page_size, buffer_size);
