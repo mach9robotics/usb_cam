@@ -1062,16 +1062,22 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
       switch (errno)
       {
         case EINVAL:
+        {
           /* Cropping not supported. */
+          ROS_INFO("Cropping not supported");
           break;
+        }
         default:
+        {
           /* Errors ignored. */
           break;
+        }
       }
     }
   }
   else
   {
+    ROS_INFO("VIDIOC_CROPCAP failed");
     /* Errors ignored. */
   }
 
@@ -1081,7 +1087,7 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
   fmt.fmt.pix.width = image_width;
   fmt.fmt.pix.height = image_height;
   fmt.fmt.pix.pixelformat = pixelformat_;
-  fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
+  fmt.fmt.pix.field = V4L2_FIELD_ANY;
 
   if (-1 == xioctl(fd_, VIDIOC_S_FMT, &fmt))
   {
@@ -1139,7 +1145,7 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
   if (xioctl(fd_, VIDIOC_S_PARM, &stream_params) < 0)
     ROS_WARN("Couldn't set camera framerate");
   else
-    ROS_DEBUG("Set framerate to be %i", framerate);
+    ROS_INFO("Set framerate to be %i", framerate);
 
   switch (io_)
   {
