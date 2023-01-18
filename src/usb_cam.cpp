@@ -56,8 +56,17 @@
 #include <usb_cam/usb_cam.h>
 
 #define CLEAR(x) memset (&(x), 0, sizeof (x))
+#define NB_BUFFER (3)
 
 namespace usb_cam {
+
+class DeviceBusyException : public std::exception {
+public:
+std::string what ()
+{
+  return "Device or resource busy";
+}
+};
 
 static void monotonicToRealTime(const timespec& monotonic_time, timespec& real_time)
 {
@@ -957,7 +966,7 @@ void UsbCam::init_userp(unsigned int buffer_size)
 
   CLEAR(req);
 
-  req.count = 4;
+  req.count = NB_BUFFER;
   req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   req.memory = V4L2_MEMORY_USERPTR;
 
@@ -969,13 +978,18 @@ void UsbCam::init_userp(unsigned int buffer_size)
                 "user pointer i/o");
       exit(EXIT_FAILURE);
     }
+    else if (EBUSY == errno)
+    {
+      ROS_WARN("Device or resource busy");
+      throw DeviceBusyException();
+    }
     else
     {
       errno_exit("VIDIOC_REQBUFS");
     }
   }
 
-  buffers_ = (buffer*)calloc(4, sizeof(*buffers_));
+  buffers_ = (buffer*)calloc(NB_BUFFER, sizeof(*buffers_));
 
   if (!buffers_)
   {
@@ -983,7 +997,7 @@ void UsbCam::init_userp(unsigned int buffer_size)
     exit(EXIT_FAILURE);
   }
 
-  for (n_buffers_ = 0; n_buffers_ < 4; ++n_buffers_)
+  for (n_buffers_ = 0; n_buffers_ < NB_BUFFER; ++n_buffers_)
   {
     buffers_[n_buffers_].length = buffer_size;
     buffers_[n_buffers_].start = memalign(/* boundary */page_size, buffer_size);
@@ -1061,16 +1075,22 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
       switch (errno)
       {
         case EINVAL:
+        {
           /* Cropping not supported. */
+          ROS_INFO("Cropping not supported");
           break;
+        }
         default:
+        {
           /* Errors ignored. */
           break;
+        }
       }
     }
   }
   else
   {
+    ROS_INFO("VIDIOC_CROPCAP failed");
     /* Errors ignored. */
   }
 
@@ -1080,7 +1100,7 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
   fmt.fmt.pix.width = image_width;
   fmt.fmt.pix.height = image_height;
   fmt.fmt.pix.pixelformat = pixelformat_;
-  fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
+  fmt.fmt.pix.field = V4L2_FIELD_ANY;
 
   if (-1 == xioctl(fd_, VIDIOC_S_FMT, &fmt))
   {
@@ -1129,7 +1149,7 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
   memset(&stream_params, 0, sizeof(stream_params));
   stream_params.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   if (xioctl(fd_, VIDIOC_G_PARM, &stream_params) < 0)
-    errno_exit("Couldn't query v4l fps!");
+    ROS_WARN_ONCE("Couldn't query v4l fps!");
 
   ROS_DEBUG("Capability flag: 0x%x", stream_params.parm.capture.capability);
 
@@ -1138,7 +1158,7 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
   if (xioctl(fd_, VIDIOC_S_PARM, &stream_params) < 0)
     ROS_WARN("Couldn't set camera framerate");
   else
-    ROS_DEBUG("Set framerate to be %i", framerate);
+    ROS_INFO("Set framerate to be %i", framerate);
 
   switch (io_)
   {
@@ -1241,8 +1261,19 @@ void UsbCam::start(const std::string& dev, io_method io_method,
     exit(EXIT_FAILURE);
   }
 
+open_dev:
   open_device();
-  init_device(image_width, image_height, framerate);
+  try
+  {
+    init_device(image_width, image_height, framerate);
+  }
+  catch (DeviceBusyException e)
+  {
+    uninit_device();
+    close_device();
+    sleep(1);
+    goto open_dev;
+  }
   start_capturing();
 
   image_ = (camera_image_t *)calloc(1, sizeof(camera_image_t));
