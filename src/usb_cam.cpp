@@ -1130,7 +1130,7 @@ void UsbCam::init_device(int image_width, int image_height, int framerate)
   memset(&stream_params, 0, sizeof(stream_params));
   stream_params.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
   if (xioctl(fd_, VIDIOC_G_PARM, &stream_params) < 0)
-    errno_exit("Couldn't query v4l fps!");
+    ROS_WARN_ONCE("Couldn't query v4l fps!");
 
   ROS_DEBUG("Capability flag: 0x%x", stream_params.parm.capture.capability);
 
