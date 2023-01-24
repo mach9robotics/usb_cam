@@ -211,10 +211,14 @@ public:
     if (auto_white_balance_)
     {
       cam_.set_v4l_parameter("white_balance_temperature_auto", 1);
+      // econ camera control lists as "white_balance_automatic"
+      cam_.set_v4l_parameter("white_balance_automatic", 1);
     }
     else
     {
       cam_.set_v4l_parameter("white_balance_temperature_auto", 0);
+      // econ camera control lists as "white_balance_automatic"
+      cam_.set_v4l_parameter("white_balance_automatic", 0);
       cam_.set_v4l_parameter("white_balance_temperature", white_balance_);
     }
 

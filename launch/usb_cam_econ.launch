@@ -8,6 +8,8 @@
     <arg name="camera_frame_id" default="camera" />
     <arg name="io_method" default="userptr" />
 
+    <arg name="auto_white_balance" default="true" />
+    <arg name="white_balance" default="3000" />
     <arg name="econ_exposure_auto" default="0" />
     <arg name="econ_exposure_time_absolute" default="312" />
     <arg name="econ_roi_window_size" default="8" />
@@ -29,6 +31,8 @@
         <param name="camera_frame_id" value="$(arg camera_frame_id)" />
         <param name="io_method" value="$(arg io_method)"/>
 
+        <param name="auto_white_balance" value="$(arg auto_white_balance)" />
+        <param name="white_balance" value="$(arg white_balance)" />
         <param name="econ_exposure_auto" value="$(arg econ_exposure_auto)" />
         <param name="econ_exposure_time_absolute" value="$(arg econ_exposure_time_absolute)" />
         <param name="econ_roi_window_size" value="$(arg econ_roi_window_size)" />
