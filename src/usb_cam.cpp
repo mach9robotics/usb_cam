@@ -710,7 +710,7 @@ int UsbCam::read_frame()
       if (-1 == xioctl(fd_, VIDIOC_QBUF, &buf))
         errno_exit("VIDIOC_QBUF");
 
-      image_->stamp = stamp;
+      // image_->stamp = stamp;
 
       break;
 
@@ -752,7 +752,7 @@ int UsbCam::read_frame()
       if (-1 == xioctl(fd_, VIDIOC_QBUF, &buf))
         errno_exit("VIDIOC_QBUF");
 
-      image_->stamp = stamp;
+      // image_->stamp = stamp;
 
       break;
   }
